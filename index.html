@@ -15,17 +15,19 @@
     .mode-buttons {
       display: flex;
       justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
       margin-bottom: 1rem;
     }
     .mode-buttons button {
       padding: 0.5rem 1rem;
-      margin: 0.25rem;
       border: none;
       border-radius: 5px;
       font-size: 1rem;
       cursor: pointer;
       background-color: #333;
       color: #fff;
+      white-space: nowrap;
     }
     .mode-buttons button.active {
       background-color: #4caf50;
@@ -33,97 +35,49 @@
     .hidden {
       display: none;
     }
-    textarea {
+    iframe {
       width: 100%;
-      max-width: 500px;
-      height: 150px;
-      margin-bottom: 1rem;
-      padding: 0.5rem;
-      font-size: 1rem;
-      border-radius: 8px;
+      height: 85vh;
       border: none;
-      resize: none;
     }
-    button {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      background-color: #4caf50;
-      color: white;
-      cursor: pointer;
-      margin: 0.25rem;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    .layout {
-      display: flex;
-      gap: 2rem;
-      width: 100%;
-      max-width: 900px;
-    }
-    .left-panel {
-      flex: 2;
-    }
-    .right-panel {
-      flex: 1;
-      border-left: 1px solid #555;
-      padding-left: 1rem;
-    }
-    .result-container {
-      display: flex;
-      justify-content: center;
-      gap: 3rem;
-      margin-top: 2rem;
-      flex-wrap: wrap;
-    }
-    .team-box {
-      min-width: 240px;
-      white-space: pre-line;
-      font-size: 1.1rem;
-    }
-    .team-title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-    }
-    .control-buttons {
-      margin-top: 2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .balance-output {
-      margin-top: 1rem;
-      white-space: pre-line;
-      font-size: 1rem;
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+        text-align: center;
+      }
+      iframe {
+        height: 1200px;
+      }
     }
   </style>
 </head>
 <body>
-<h1>LOL 팀 배정 도우미</h1>
-<div class="mode-buttons">
-  <button id="randomModeBtn" class="active" onclick="switchMode('random')">🔀 랜덤으로 픽하기</button>
-  <button id="balancedModeBtn" onclick="switchMode('balanced')">⚖️ 밸런스로 픽하기</button>
-</div>
+  <h1>LOL 팀 배정 도우미</h1>
+  <div class="mode-buttons">
+    <button id="randomModeBtn" class="active" onclick="switchMode('random')">🔀 랜덤으로 픽하기</button>
+    <button id="balancedModeBtn" onclick="switchMode('balanced')">⚖️ 밸런스로 픽하기</button>
+  </div>
 
-<div id="random-mode">
-  <iframe src="randomMode.html" width="100%" height="800" style="border:none;"></iframe>
-</div>
+  <div id="random-mode">
+    <iframe src="randomMode.html"></iframe>
+  </div>
 
-<div id="balanced-mode" class="hidden">
-  <p style="text-align: center; font-size: 1.2rem;">⚖️ 밸런스 기반 픽 기능은 준비 중입니다...</p>
-</div>
+  <div id="balanced-mode" class="hidden">
+    <p style="text-align: center; font-size: 1.2rem;">⚖️ 밸런스 기반 픽 기능은 준비 중입니다...</p>
+  </div>
 
-<script>
-  function switchMode(mode) {
-    document.getElementById('random-mode').classList.toggle('hidden', mode !== 'random');
-    document.getElementById('balanced-mode').classList.toggle('hidden', mode !== 'balanced');
+  <script>
+    function switchMode(mode) {
+      document.getElementById('random-mode').classList.toggle('hidden', mode !== 'random');
+      document.getElementById('balanced-mode').classList.toggle('hidden', mode !== 'balanced');
 
-    document.getElementById('randomModeBtn').classList.toggle('active', mode === 'random');
-    document.getElementById('balancedModeBtn').classList.toggle('active', mode === 'balanced');
-  }
-</script>
+      document.getElementById('randomModeBtn').classList.toggle('active', mode === 'random');
+      document.getElementById('balancedModeBtn').classList.toggle('active', mode === 'balanced');
+    }
+  </script>
 </body>
 </html>
