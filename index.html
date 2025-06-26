@@ -40,7 +40,6 @@
       height: 85vh;
       border: none;
     }
-
     @media (max-width: 768px) {
       body {
         padding: 1rem;
@@ -53,31 +52,150 @@
         height: 1200px;
       }
     }
+    .arena-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+    }
+    .arena-left, .arena-right {
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+    }
+    .arena-left textarea, .arena-left input {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      border: none;
+      resize: none;
+    }
+    .arena-left button {
+      margin-bottom: 1rem;
+    }
+    .teams, .results, .money {
+      font-family: monospace;
+      white-space: pre-line;
+      font-size: 1rem;
+      text-align: left;
+    }
+    .money {
+      color: #ffd700;
+      font-size: 1.15rem;
+    }
+    .arena-right {
+      border-left: 2px solid #888;
+      padding-left: 1.5rem;
+    }
   </style>
 </head>
 <body>
-  <h1>LOL 팀 배정 도우미</h1>
-  <div class="mode-buttons">
-    <button id="randomModeBtn" class="active" onclick="switchMode('random')">🔀 랜덤으로 픽하기</button>
-    <button id="balancedModeBtn" onclick="switchMode('balanced')">⚖️ 밸런스로 픽하기</button>
+<h1>LOL 팀 배정 도우미</h1>
+<div class="mode-buttons">
+  <button id="randomModeBtn" class="active" onclick="switchMode('random')">🔀 랜덤으로 픽하기</button>
+  <button id="balancedModeBtn" onclick="switchMode('balanced')">⚖️ 밸런스로 픽하기</button>
+  <button id="arenaModeBtn" onclick="switchMode('arena')">🎮 아레나 팀짜기</button>
+</div>
+
+<div id="random-mode">
+  <iframe src="randomMode.html"></iframe>
+</div>
+
+<div id="balanced-mode" class="hidden">
+  <p style="text-align: center; font-size: 1.2rem;">⚖️ 밸런스 기반 픽 기능은 준비 중입니다...</p>
+</div>
+
+<div id="arena-mode" class="hidden">
+  <div class="arena-container">
+    <div class="arena-left">
+      <p>8명의 소환사 이름을 쉼표(,) 또는 줄바꿈으로 입력하세요</p>
+      <textarea id="arenaInput" placeholder="예: 정현, 철수, 영희, ..."></textarea>
+      <button onclick="assignArenaTeams()">🎮 아레나 팀 랜덤 배정</button>
+      <div class="teams" id="arenaTeams"></div>
+
+      <p style="margin-top: 1.5rem;">팀 순위를 1~4등 순서로 입력하세요 (예: 3,1,4,2)</p>
+      <input type="text" id="rankInput" placeholder="예: 3,1,4,2">
+      <button onclick="calculateSettlement()">💰 정산하기</button>
+      <div class="results" id="arenaResults"></div>
+    </div>
+    <div class="arena-right">
+      <h3>💰 실시간 금액 현황</h3>
+      <div class="money" id="arenaMoney"></div>
+    </div>
   </div>
+</div>
 
-  <div id="random-mode">
-    <iframe src="randomMode.html"></iframe>
-  </div>
+<script>
+  function switchMode(mode) {
+    document.getElementById('random-mode').classList.toggle('hidden', mode !== 'random');
+    document.getElementById('balanced-mode').classList.toggle('hidden', mode !== 'balanced');
+    document.getElementById('arena-mode').classList.toggle('hidden', mode !== 'arena');
 
-  <div id="balanced-mode" class="hidden">
-    <p style="text-align: center; font-size: 1.2rem;">⚖️ 밸런스 기반 픽 기능은 준비 중입니다...</p>
-  </div>
+    document.getElementById('randomModeBtn').classList.toggle('active', mode === 'random');
+    document.getElementById('balancedModeBtn').classList.toggle('active', mode === 'balanced');
+    document.getElementById('arenaModeBtn').classList.toggle('active', mode === 'arena');
+  }
 
-  <script>
-    function switchMode(mode) {
-      document.getElementById('random-mode').classList.toggle('hidden', mode !== 'random');
-      document.getElementById('balanced-mode').classList.toggle('hidden', mode !== 'balanced');
+  let currentTeams = [];
+  const moneyMap = new Map();
 
-      document.getElementById('randomModeBtn').classList.toggle('active', mode === 'random');
-      document.getElementById('balancedModeBtn').classList.toggle('active', mode === 'balanced');
+  function assignArenaTeams() {
+    const input = document.getElementById('arenaInput').value.trim();
+    const players = input.split(/\n|,/).map(p => p.trim()).filter(p => p);
+
+    if (players.length !== 8) {
+      alert('정확히 8명의 이름을 입력해주세요!');
+      return;
     }
-  </script>
+
+    players.sort(() => Math.random() - 0.5);
+    currentTeams = [];
+    let output = '';
+    for (let i = 0; i < 4; i++) {
+      const team = players.slice(i * 2, i * 2 + 2);
+      currentTeams.push(team);
+      team.forEach(name => moneyMap.set(name, moneyMap.get(name) || 0));
+      output += `팀 ${i + 1}:\t${team.join(' / ')}\n`;
+    }
+    document.getElementById('arenaTeams').textContent = output;
+    document.getElementById('arenaResults').textContent = '';
+    document.getElementById('arenaMoney').textContent = renderMoneyRank();
+  }
+
+  function calculateSettlement() {
+    const input = document.getElementById('rankInput').value.trim();
+    const ranks = input.split(',').map(s => parseInt(s.trim()) - 1);
+
+    if (ranks.length !== 4 || ranks.some(r => isNaN(r) || r < 0 || r > 3)) {
+      alert('정확한 1~4등 순위를 입력해주세요 (예: 1,2,3,4)');
+      return;
+    }
+
+    const results = ranks.map((teamIdx, i) => `🥇 ${i + 1}등: 팀 ${teamIdx + 1} (${currentTeams[teamIdx].join(' / ')})`).join('\n');
+
+    const payments = [];
+
+    for (let i = 0; i < 4; i++) {
+      const team = currentTeams[ranks[i]];
+      const sign = i < 2 ? 1 : -1;
+      team.forEach(player => {
+        const current = moneyMap.get(player) || 0;
+        moneyMap.set(player, current + 10000 * sign);
+      });
+      payments.push(`팀 ${ranks[i] + 1}: ${sign > 0 ? '+1만원씩' : '-1만원씩'}`);
+    }
+
+    document.getElementById('arenaResults').textContent = `🏆 순위\n${results}\n\n💰 정산\n${payments.join('\n')}`;
+    document.getElementById('arenaMoney').textContent = renderMoneyRank();
+  }
+
+  function renderMoneyRank() {
+    const sorted = Array.from(moneyMap.entries())
+            .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    return '\n📊 금액 현황 (실시간)\n' + sorted.map(([name, money]) => `${name}: ${money.toLocaleString()}원`).join('\n');
+  }
+</script>
 </body>
 </html>
